@@ -44,22 +44,23 @@ pipeline{
         dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
     }
    }
+       stage("Docker Build & Push") {
+    steps {
+        script {
+            withDockerRegistry(credentialsId: 'docker-creds', toolName: 'docker') {
+                sh "docker build -t swiggy ."
+                sh "docker tag swiggy bommareddysindhu/swiggy:latest"
+                sh "docker push bommareddysindhu/swiggy:latest"
+            }
+        }
+    }
+}
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-        stage("Docker Build & Push"){
-            steps{
-                script{
-                   withDockerRegistry(credentialsId: 'docker-creds', toolName: 'docker'){   
-                       sh "docker build -t swiggy ."
-                       sh "docker tag swiggy bommareddysindhu/swiggy:latest "
-                       sh "docker push bommareddysindhu/swiggy:latest "
-                    }
-                }
-            }
-        }
+       
         stage("TRIVY"){
             steps{
                 sh "trivy image bommareddysindhu/swiggy:latest > trivy.txt" 
